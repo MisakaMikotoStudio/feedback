@@ -109,6 +109,7 @@ public class controller {
             throw new RuntimeException("标签已存在:" + label + ";");
         }
 
+
         Label record = new Label();
         record.setLabel(label);
         labelRepository.save(record);
