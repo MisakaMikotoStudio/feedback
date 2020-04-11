@@ -1,10 +1,13 @@
 package com.example.feedback.controller;
 
+import com.example.feedback.dao.LabelRepository;
 import com.example.feedback.dao.RecordRepository;
+import com.example.feedback.dao.model.Label;
 import com.example.feedback.dao.model.Record;
 import com.example.feedback.model.BaseResponse;
 import com.example.feedback.model.RecordDto;
 import com.example.feedback.util.UpdateTool;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +22,8 @@ import java.util.stream.Collectors;
 public class controller {
     @Autowired
     private RecordRepository recordRepository;
+    @Autowired
+    private LabelRepository labelRepository;
 
     /**
      * 查询所有的支持记录
@@ -90,19 +95,35 @@ public class controller {
     }
 
     /**
-     * 处理人统计接口
+     * 添加标签
+     * @param label 标签，不能为空，不能重复
      * @return
      */
-    @GetMapping("/count/handlers")
-    public BaseResponse countHandlers(@RequestParam(required = false) Long startTime,
-                                      @RequestParam(required = false) Long endTime) {
-        Map<String, Integer> count = new HashMap<>();
-        for (Record record : getRecords(startTime, endTime)) {
-            for (String handler : record.getHandlers().split(",")) {
-                count.put(handler, count.getOrDefault(handler, 0) + 1);
-            }
+    @PostMapping("/label/add")
+    public BaseResponse addLabel(@RequestParam String label) {
+        if (StringUtils.isBlank(label)) {
+            throw new RuntimeException("标签不能为空:" + label + ";");
         }
-        return BaseResponse.success(count);
+        boolean duplicated = labelRepository.findAll().stream().anyMatch(label::equals);
+        if (duplicated) {
+            throw new RuntimeException("标签已存在:" + label + ";");
+        }
+
+        Label record = new Label();
+        record.setLabel(label);
+        labelRepository.save(record);
+        return BaseResponse.success();
+    }
+
+    /**
+     * 获取所有的标签
+     * @return
+     */
+    @GetMapping("/label/getAll")
+    public BaseResponse getallLabels() {
+        List<String> labels = labelRepository.findAll().stream()
+                .map(Label::getLabel).collect(Collectors.toList());
+        return BaseResponse.success(labels);
     }
 
     private List<Record> getRecords(Long startTime, Long endTime) {
