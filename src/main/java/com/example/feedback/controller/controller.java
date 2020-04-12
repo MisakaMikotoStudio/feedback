@@ -5,6 +5,7 @@ import com.example.feedback.dao.RecordRepository;
 import com.example.feedback.dao.model.Label;
 import com.example.feedback.dao.model.Record;
 import com.example.feedback.model.BaseResponse;
+import com.example.feedback.model.RecordCountDto;
 import com.example.feedback.model.RecordDto;
 import com.example.feedback.util.UpdateTool;
 import org.apache.commons.lang3.StringUtils;
@@ -71,11 +72,16 @@ public class controller {
     @GetMapping("/count/status")
     public BaseResponse StatusCount(@RequestParam(required = false) Long startTime,
                                     @RequestParam(required = false) Long endTime) {
+        List<Record> records = getRecords(startTime, endTime);
         Map<String, Integer> count = new HashMap<>();
-        for (Record record : getRecords(startTime, endTime)) {
+        for (Record record : records) {
             count.put(record.getStatus(), count.getOrDefault(record.getStatus(), 0) + 1);
         }
-        return BaseResponse.success(count);
+
+        RecordCountDto dto = new RecordCountDto();
+        dto.setCount(records.size());
+        dto.setData(count);
+        return BaseResponse.success(dto);
     }
 
     /**
@@ -85,13 +91,18 @@ public class controller {
     @GetMapping("/count/labels")
     public BaseResponse labelsCount(@RequestParam(required = false) Long startTime,
                                     @RequestParam(required = false) Long endTime) {
+        List<Record> records = getRecords(startTime, endTime);
         Map<String, Integer> count = new HashMap<>();
-        for (Record record : getRecords(startTime, endTime)) {
+        for (Record record : records) {
             for (String label : record.getLabels().split(",")) {
                 count.put(label, count.getOrDefault(label, 0) + 1);
             }
         }
-        return BaseResponse.success(count);
+
+        RecordCountDto dto = new RecordCountDto();
+        dto.setCount(records.size());
+        dto.setData(count);
+        return BaseResponse.success(dto);
     }
 
     /**
