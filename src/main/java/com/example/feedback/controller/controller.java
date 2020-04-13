@@ -145,7 +145,7 @@ public class controller {
             endTime = System.currentTimeMillis();
         }
         Long finalStartTime = startTime;
-        Long finalEndTime = endTime;
+        Long finalEndTime = endTime + 24 * 3600 * 1000;
         return recordRepository.findAll().stream()
                 .filter(record -> record.getFeedBackTime() > finalStartTime && record.getFeedBackTime() < finalEndTime)
                 .collect(Collectors.toList());
