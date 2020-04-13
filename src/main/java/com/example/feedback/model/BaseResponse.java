@@ -1,24 +1,22 @@
 package com.example.feedback.model;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@ApiModel(description = "返回数据通用格式")
 public class BaseResponse implements Serializable {
-    /**
-     * 0代表正确，非0代表不正确
-     */
+
+    @ApiModelProperty(value = "0代表正确，非0代表不正确")
     private int code;
 
-    /**
-     * 异常信息
-     */
+    @ApiModelProperty(value = "返回不正确时的异常信息")
     private String message;
 
-    /**
-     * 返回信息
-     */
+    @ApiModelProperty(value = "返回数据")
     private Object data;
 
     public static BaseResponse success() {

@@ -8,6 +8,7 @@ import com.example.feedback.model.BaseResponse;
 import com.example.feedback.model.RecordCountDto;
 import com.example.feedback.model.RecordDto;
 import com.example.feedback.util.UpdateTool;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Api(tags = "用户反馈记录的数据接口")
 @RestController
 @RequestMapping("/")
 public class controller {
@@ -26,11 +28,10 @@ public class controller {
     @Autowired
     private LabelRepository labelRepository;
 
-    /**
-     * 查询所有的支持记录
-     * @return
-     */
     @GetMapping("/data/query")
+    @ApiOperation("根据来源，获取所有的用户反馈记录")
+    @ApiImplicitParam(name = "source", value = "记录来源:report_feedback，报表反馈；chat_feedback，群反馈",
+            required = false, dataType = "String", paramType = "query")
     public BaseResponse getAllRecords(@RequestParam String source) {
         List<RecordDto> dtos = recordRepository.findAll().stream()
                 .filter(record -> record.getSource().equals(source))
@@ -38,10 +39,8 @@ public class controller {
         return BaseResponse.success(dtos);
     }
 
-    /**
-     * 更新记录
-     */
     @PostMapping("/data/modify")
+    @ApiOperation("更新记录，id必须传递")
     public BaseResponse updateRecord(@RequestBody RecordDto dto) {
         if (Objects.isNull(dto.getId())) {
             throw new RuntimeException("更新记录时，id必须传递");
@@ -54,10 +53,8 @@ public class controller {
         return BaseResponse.success();
     }
 
-    /**
-     * 添加记录
-     */
     @PostMapping("/data/add")
+    @ApiOperation("添加记录，id不能传递")
     public BaseResponse addRecord(@RequestBody RecordDto dto) {
         if (!Objects.isNull(dto.getId())) {
             throw new RuntimeException("添加记录时，不能传递id");
@@ -66,10 +63,24 @@ public class controller {
         return BaseResponse.success();
     }
 
-    /**
-     * 状态统计数据接口
-     */
     @GetMapping("/count/status")
+    @ApiOperation("状态统计数据接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "startTime",
+                    value = "开始时间,毫秒级时间戳。如果不传递，代表不做限制",
+                    required = false,
+                    dataType = "Long",
+                    paramType = "query"
+            ),
+            @ApiImplicitParam(
+                    name = "endTime",
+                    value = "开始时间,毫秒级时间戳。如果不传递，代表不做限制",
+                    required = false,
+                    dataType = "Long",
+                    paramType = "query"
+            )
+    })
     public BaseResponse StatusCount(@RequestParam(required = false) Long startTime,
                                     @RequestParam(required = false) Long endTime) {
         List<Record> records = getRecords(startTime, endTime);
@@ -84,11 +95,24 @@ public class controller {
         return BaseResponse.success(dto);
     }
 
-    /**
-     * 标签统计接口
-     * @return
-     */
     @GetMapping("/count/labels")
+    @ApiOperation("标签统计数据接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(
+                    name = "startTime",
+                    value = "开始时间,毫秒级时间戳。如果不传递，代表不做限制",
+                    required = false,
+                    dataType = "Long",
+                    paramType = "query"
+            ),
+            @ApiImplicitParam(
+                    name = "endTime",
+                    value = "开始时间,毫秒级时间戳。如果不传递，代表不做限制",
+                    required = false,
+                    dataType = "Long",
+                    paramType = "query"
+            )
+    })
     public BaseResponse labelsCount(@RequestParam(required = false) Long startTime,
                                     @RequestParam(required = false) Long endTime) {
         List<Record> records = getRecords(startTime, endTime);
@@ -105,12 +129,9 @@ public class controller {
         return BaseResponse.success(dto);
     }
 
-    /**
-     * 添加标签
-     * @param label 标签，不能为空，不能重复
-     * @return
-     */
     @PostMapping("/label/add")
+    @ApiOperation("添加标签")
+    @ApiImplicitParam(name = "label", value = "标签，不能为空，不能重复", required = false, dataType = "String", paramType = "query")
     public BaseResponse addLabel(@RequestParam String label) {
         if (StringUtils.isBlank(label)) {
             throw new RuntimeException("标签不能为空:" + label + ";");
@@ -126,11 +147,8 @@ public class controller {
         return BaseResponse.success();
     }
 
-    /**
-     * 获取所有的标签
-     * @return
-     */
     @GetMapping("/label/getAll")
+    @ApiOperation("获取所有标签")
     public BaseResponse getallLabels() {
         List<String> labels = labelRepository.findAll().stream()
                 .map(Label::getLabel).collect(Collectors.toList());
@@ -145,6 +163,7 @@ public class controller {
             endTime = System.currentTimeMillis();
         }
         Long finalStartTime = startTime;
+        // 因为前端传递的时间是 2020-04-02 00:00:00 这种，所以要加一天才能查到最后一天的记录
         Long finalEndTime = endTime + 24 * 3600 * 1000;
         return recordRepository.findAll().stream()
                 .filter(record -> record.getFeedBackTime() > finalStartTime && record.getFeedBackTime() < finalEndTime)
