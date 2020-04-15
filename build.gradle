@@ -24,6 +24,7 @@ repositories {
 }
 
 dependencies {
+    compile 'com.alibaba:fastjson:1.2.62'
     compile 'io.springfox:springfox-swagger2:2.9.2'
     compile 'io.springfox:springfox-swagger-ui:2.9.2'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
