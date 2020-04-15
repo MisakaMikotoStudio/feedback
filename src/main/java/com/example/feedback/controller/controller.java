@@ -36,6 +36,7 @@ public class controller {
         List<RecordDto> dtos = recordRepository.findAll().stream()
                 .filter(record -> record.getSource().equals(source))
                 .map(RecordDto::new).collect(Collectors.toList());
+        dtos.sort(((o1, o2) -> o2.getFeedBackTime().compareTo(o1.getFeedBackTime())));
         return BaseResponse.success(dtos);
     }
 
